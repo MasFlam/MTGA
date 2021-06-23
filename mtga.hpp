@@ -21,7 +21,6 @@
 #include <utility>
 
 // TODO: organize
-// TODO: foreach and map on tuples
 
 class $$ {
 	
@@ -118,6 +117,42 @@ public:
 	{
 		_for_each_call<Func, 0, std::tuple_size<std::tuple<Elements...>>::value, Elements...>()
 			._call(tuple, func);
+	}
+	
+	/**** map ****/
+	
+private:
+	
+	template<typename Func, std::size_t I, std::size_t N, typename... Elements>
+	struct _map_call
+	{
+		inline constexpr auto _call(const std::tuple<Elements...>& tuple,
+		                            std::tuple<Elements...>& results,
+		                            const Func& func) const
+		{
+			std::get<I>(results) = func(std::get<I>(tuple));
+			_map_call<Func, I + 1, N - 1, Elements...>()._call(tuple, results, func);
+		}
+	};
+	
+	template<typename Func, std::size_t I, typename... Elements>
+	struct _map_call<Func, I, 0, Elements...>
+	{
+		inline constexpr auto _call(const std::tuple<Elements...>& tuple,
+		                            std::tuple<Elements...>& results,
+		                            const Func& func) const noexcept
+		{}
+	};
+	
+public:
+	
+	template<typename Func, typename... Elements>
+	inline constexpr auto map(const std::tuple<Elements...>& tuple, const Func& func) const
+	{
+		std::tuple<Elements...> results;
+		_map_call<Func, 0, std::tuple_size<std::tuple<Elements...>>::value, Elements...>()
+			._call(tuple, results, func);
+		return results;
 	}
 	
 	/**** operator() ****/

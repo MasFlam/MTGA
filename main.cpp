@@ -17,7 +17,8 @@ int main()
 	std::cout << std::endl;
 	
 	auto tup = $(1, 2, 3, 4, 5);
-	$.for_each(tup, [](auto x) { std::cout << 2*x << std::endl; });
+	$.for_each($.map(tup, [](auto x) { return 2*x; }),
+	           [](auto x) { std::cout << x << std::endl; });
 	
 	return 0;
 }
