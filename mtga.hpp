@@ -22,17 +22,53 @@
 
 // TODO: organize
 // TODO: foreach and map on tuples
-// TODO: reverse iota on negative N (presumably use std::enable_if)
 
 class $$ {
+	
+	/**** iota ****/
+	
 	template<typename Itype, Itype S, typename IntegralConstantN, Itype... Is>
 	struct _iota_seq;
 	
 	template<typename Itype, Itype S, Itype N, Itype... Is>
-	struct _iota_seq<Itype, S, std::integral_constant<Itype, N>, Is...> : _iota_seq<Itype, S + 1, std::integral_constant<Itype, N - 1>, Is..., S> {};
+	struct _iota_seq<Itype, S, std::integral_constant<Itype, N>, Is...>
+		: _iota_seq<Itype, S + 1, std::integral_constant<Itype, N - 1>, Is..., S>
+	{};
 	
 	template<typename Itype, Itype S, Itype... Is>
-	struct _iota_seq<Itype, S, std::integral_constant<Itype, 0>, Is...> { typedef std::integer_sequence<Itype, Is...> iseq; };
+	struct _iota_seq<Itype, S, std::integral_constant<Itype, 0>, Is...>
+	{
+		typedef std::integer_sequence<Itype, Is...> iseq;
+	};
+	
+	template<typename Itype, Itype S, typename IntegralConstantN, Itype... Is>
+	struct _iota_rseq;
+	
+	template<typename Itype, Itype S, Itype N, Itype... Is>
+	struct _iota_rseq<Itype, S, std::integral_constant<Itype, N>, Is...>
+		: _iota_rseq<Itype, S - 1, std::integral_constant<Itype, N - 1>, Is..., S>
+	{};
+	
+	template<typename Itype, Itype S, Itype... Is>
+	struct _iota_rseq<Itype, S, std::integral_constant<Itype, 0>, Is...>
+	{
+		typedef std::integer_sequence<Itype, Is...> iseq;
+	};
+	
+	template<typename Itype, bool asc, Itype S, Itype N>
+	struct _iota;
+	
+	template<typename Itype, Itype S, Itype N>
+	struct _iota<Itype, true, S, N>
+	{
+		typedef typename _iota_seq<Itype, S, std::integral_constant<Itype, N>>::iseq seq;
+	};
+	
+	template<typename Itype, Itype S, Itype N>
+	struct _iota<Itype, false, S, N>
+	{
+		typedef typename _iota_rseq<Itype, S, std::integral_constant<Itype, -N>>::iseq seq;
+	};
 	
 	template<typename Itype, Itype... Is>
 	inline constexpr auto _iota_internal(std::integer_sequence<Itype, Is...>)
@@ -45,21 +81,24 @@ public:
 	template<typename Itype, Itype S, Itype N>
 	inline constexpr auto iota()
 	{
-		static_assert(N >= 0, "$.iota: N must be non-negative");
-		return _iota_internal(typename _iota_seq<Itype, S, std::integral_constant<Itype, N>>::iseq());
+		return _iota_internal(typename _iota<Itype, N >= 0, S, N>::seq());
 	}
 	
-	template<std::size_t S, std::size_t N>
+	template<int S, int N>
 	inline constexpr auto iota()
 	{
-		return iota<std::size_t, S, N>();
+		return iota<int, S, N>();
 	}
+	
+	/**** operator() ****/
 	
 	template<typename... Elements>
 	inline constexpr auto operator()(Elements&&... elements)
 	{
 		return std::make_tuple(std::forward<Elements>(elements)...);
 	}
+	
+	/**** operator[] ****/
 	
 	template<typename... Elements>
 	inline constexpr std::size_t operator[](const std::tuple<Elements...>& tuple)
