@@ -97,7 +97,7 @@ private:
 	template<typename Func, std::size_t I, std::size_t N, typename... Elements>
 	struct _for_each_call
 	{
-		inline constexpr auto _call(const std::tuple<Elements...>& tuple, const Func& func) const noexcept
+		inline constexpr auto _call(const std::tuple<Elements...>& tuple, const Func& func) const
 		{
 			func(std::get<I>(tuple));
 			_for_each_call<Func, I + 1, N - 1, Elements...>()._call(tuple, func);
@@ -114,7 +114,7 @@ private:
 public:
 	
 	template<typename Func, typename... Elements>
-	inline constexpr auto for_each(const std::tuple<Elements...>& tuple, const Func& func) const noexcept
+	inline constexpr auto for_each(const std::tuple<Elements...>& tuple, const Func& func) const
 	{
 		_for_each_call<Func, 0, std::tuple_size<std::tuple<Elements...>>::value, Elements...>()
 			._call(tuple, func);
