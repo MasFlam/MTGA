@@ -24,5 +24,7 @@ int main()
 		std::get<7>(desc) << ' ' <<
 		std::get<8>(desc) << ' ' <<
 		std::get<9>(desc) << std::endl;
+	auto tup = $(1, 2, 3, 4, 5);
+	$.for_each(tup, [](auto x) { std::cout << 2*x << std::endl; });
 	return 0;
 }
