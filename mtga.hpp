@@ -71,7 +71,7 @@ class $$ {
 	};
 	
 	template<typename Itype, Itype... Is>
-	inline constexpr auto _iota_internal(std::integer_sequence<Itype, Is...>)
+	inline constexpr auto _iota_internal(std::integer_sequence<Itype, Is...>) const noexcept
 	{
 		return (*this)(Is...);
 	}
@@ -79,13 +79,13 @@ class $$ {
 public:
 	
 	template<typename Itype, Itype S, Itype N>
-	inline constexpr auto iota()
+	inline constexpr auto iota() const noexcept
 	{
 		return _iota_internal(typename _iota<Itype, N >= 0, S, N>::seq());
 	}
 	
 	template<int S, int N>
-	inline constexpr auto iota()
+	inline constexpr auto iota() const noexcept
 	{
 		return iota<int, S, N>();
 	}
@@ -97,7 +97,7 @@ private:
 	template<typename Func, std::size_t I, std::size_t N, typename... Elements>
 	struct _for_each_call
 	{
-		inline constexpr auto _call(const std::tuple<Elements...>& tuple, const Func& func)
+		inline constexpr auto _call(const std::tuple<Elements...>& tuple, const Func& func) const noexcept
 		{
 			func(std::get<I>(tuple));
 			_for_each_call<Func, I + 1, N - 1, Elements...>()._call(tuple, func);
@@ -107,14 +107,14 @@ private:
 	template<typename Func, std::size_t I, typename... Elements>
 	struct _for_each_call<Func, I, 0, Elements...>
 	{
-		inline constexpr auto _call(const std::tuple<Elements...>& tuple, const Func& func)
+		inline constexpr auto _call(const std::tuple<Elements...>& tuple, const Func& func) const noexcept
 		{}
 	};
 	
 public:
 	
 	template<typename Func, typename... Elements>
-	inline constexpr auto for_each(const std::tuple<Elements...>& tuple, const Func& func)
+	inline constexpr auto for_each(const std::tuple<Elements...>& tuple, const Func& func) const noexcept
 	{
 		_for_each_call<Func, 0, std::tuple_size<std::tuple<Elements...>>::value, Elements...>()
 			._call(tuple, func);
@@ -123,7 +123,7 @@ public:
 	/**** operator() ****/
 	
 	template<typename... Elements>
-	inline constexpr auto operator()(Elements&&... elements)
+	inline constexpr auto operator()(Elements&&... elements) const noexcept
 	{
 		return std::make_tuple(std::forward<Elements>(elements)...);
 	}
@@ -131,7 +131,7 @@ public:
 	/**** operator[] ****/
 	
 	template<typename... Elements>
-	inline constexpr std::size_t operator[](const std::tuple<Elements...>& tuple)
+	inline constexpr std::size_t operator[](const std::tuple<Elements...>& tuple) const noexcept
 	{
 		return std::tuple_size<std::tuple<Elements...>>::value;
 	}
