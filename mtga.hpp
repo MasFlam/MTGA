@@ -1,5 +1,5 @@
 /*
-	MTGA (Make Tuples Great Again) - C++ std::tuple utility library
+	MTGA (Make Tuples Great Again) - C++ std::tuple "utility" library
 	
 	Copyright (C) 2021 Łukasz "MasFlam" Drukała
 	
@@ -21,6 +21,14 @@
 #include <type_traits>
 #include <utility>
 
+/**
+	Make Tuples Great Again!
+	
+	This class contains different "utility" functions for working with 'std::tuple's.
+	For each translation unit, define one global or namespace-scope variable, like this:
+		$$ $;
+	It makes for funny syntax.
+*/
 class $$ {
 	
 	/**** iota ****/
@@ -69,11 +77,19 @@ class $$ {
 	
 public:
 	
+	/**
+		Returns a tuple containing 'abs(N)' consecutive values of type 'Itype'
+		(works well with integers; use non-integral types at your peril),
+		starting with 'S'. (Ascending if 'N >= 0', descending otherwise)
+	*/
 	template<typename Itype, Itype S, Itype N>
 	inline constexpr auto iota() const {
 		return _iota_internal(typename _iota<Itype, N >= 0, S, N>::seq());
 	}
 	
+	/**
+		Same as 'iota<int, S, N>()'.
+	*/
 	template<int S, int N>
 	inline constexpr auto iota() const {
 		return iota<int, S, N>();
@@ -104,6 +120,9 @@ private:
 	
 public:
 	
+	/**
+		Call 'func' on each element of 'tuple', in order.
+	*/
 	template<typename Func, typename... Elements>
 	inline constexpr auto for_each(
 		const std::tuple<Elements...>& tuple,
@@ -148,6 +167,10 @@ private:
 	
 public:
 	
+	/**
+		Call 'func' on each element in 'tuple', in order, saving the results
+		in another tuple, and returning it.
+	*/
 	template<typename Func, typename... Elements>
 	inline constexpr auto map(
 		const std::tuple<Elements...>& tuple,
@@ -162,6 +185,9 @@ public:
 	
 	/**** operator() ****/
 	
+	/**
+		Construct a tuple from 'elements'. Equivalent of 'std::make_tuple'.
+	*/
 	template<typename... Elements>
 	inline constexpr auto operator()(Elements&&... elements) const {
 		return std::make_tuple(std::forward<Elements>(elements)...);
@@ -169,6 +195,9 @@ public:
 	
 	/**** operator[] ****/
 	
+	/**
+		Return the number of elements in 'tuple'.
+	*/
 	template<typename... Elements>
 	inline constexpr std::size_t operator[](
 		const std::tuple<Elements...>& tuple
