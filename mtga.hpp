@@ -123,25 +123,30 @@ public:
 	
 private:
 	
-	template<typename Func, std::size_t I, std::size_t N, typename... Elements>
-	struct _map_call
+	template<typename Func, std::size_t I, typename Tuple, typename... NewElements>
+	struct _map_internal
 	{
-		inline constexpr auto _call(const std::tuple<Elements...>& tuple,
-		                            std::tuple<Elements...>& results,
-		                            const Func& func) const
+		inline constexpr auto _do(const Tuple& tuple,
+		                          const Func& func,
+		                          const NewElements&... new_elements)
 		{
-			std::get<I>(results) = func(std::get<I>(tuple));
-			_map_call<Func, I + 1, N - 1, Elements...>()._call(tuple, results, func);
+			return _map_internal<Func, I - 1, Tuple,
+			                     decltype(func(std::get<I>(tuple))),
+			                     NewElements...>()._do(tuple, func,
+			                                           func(std::get<I>(tuple)),
+			                                           new_elements...);
 		}
 	};
 	
-	template<typename Func, std::size_t I, typename... Elements>
-	struct _map_call<Func, I, 0, Elements...>
+	template<typename Func, typename Tuple, typename... NewElements>
+	struct _map_internal<Func, 0, Tuple, NewElements...>
 	{
-		inline constexpr auto _call(const std::tuple<Elements...>& tuple,
-		                            std::tuple<Elements...>& results,
-		                            const Func& func) const noexcept
-		{}
+		inline constexpr auto _do(const Tuple& tuple,
+		                          const Func& func,
+		                          const NewElements&... new_elements)
+		{
+			return std::make_tuple(func(std::get<0>(tuple)), new_elements...);
+		}
 	};
 	
 public:
@@ -149,10 +154,8 @@ public:
 	template<typename Func, typename... Elements>
 	inline constexpr auto map(const std::tuple<Elements...>& tuple, const Func& func) const
 	{
-		std::tuple<Elements...> results;
-		_map_call<Func, 0, std::tuple_size<std::tuple<Elements...>>::value, Elements...>()
-			._call(tuple, results, func);
-		return results;
+		constexpr auto N = std::tuple_size<std::tuple<Elements...>>::value;
+		return _map_internal<Func, N - 1, std::tuple<Elements...>>()._do(tuple, func);
 	}
 	
 	/**** operator() ****/
