@@ -38,6 +38,5 @@ int main()
 			[](const auto& x, const auto& y) { return std::string({ x }) + y; }
 		) <<
 		'"' << std::endl;
-	
 	return 0;
 }

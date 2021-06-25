@@ -165,6 +165,30 @@ private:
 		}
 	};
 	
+	template<typename Func, typename... Elements>
+	struct _map {
+		inline constexpr auto _do(
+			const std::tuple<Elements...>& tuple,
+			const Func& func
+		) const {
+			return _map_internal<
+				Func,
+				std::tuple_size<std::tuple<Elements...>>::value - 1,
+				std::tuple<Elements...>
+			>()._do(tuple, func);
+		};
+	};
+	
+	template<typename Func>
+	struct _map<Func> {
+		inline constexpr auto _do(
+			const std::tuple<>& tuple,
+			const Func& func
+		) const {
+			return std::make_tuple();
+		}
+	};
+	
 public:
 	
 	/**
@@ -176,11 +200,7 @@ public:
 		const std::tuple<Elements...>& tuple,
 		const Func& func
 	) const {
-		return _map_internal<
-			Func,
-			std::tuple_size<std::tuple<Elements...>>::value - 1,
-			std::tuple<Elements...>
-		>()._do(tuple, func);
+		return _map<Func, Elements...>()._do(tuple, func);
 	}
 	
 	/**** fold_left ****/
@@ -195,7 +215,7 @@ private:
 			const A& a,
 			const B& b,
 			const Rest&... xs
-		) {
+		) const {
 			return _foldl<
 				Func,
 				Tuple,
@@ -212,7 +232,7 @@ private:
 			const Func& func,
 			const A& a,
 			const B& b
-		) {
+		) const {
 			return func(a, b);
 		}
 	};
@@ -224,7 +244,7 @@ private:
 			const Tuple& tuple,
 			const StartElem& start_elem,
 			const Elements&... elements
-		) {
+		) const {
 			return _foldl_packer<
 				Func,
 				Tuple,
@@ -243,7 +263,7 @@ private:
 			const Tuple& tuple,
 			const StartElem& start_elem,
 			const Elements&... elements
-		) {
+		) const {
 			return _foldl<
 				Func,
 				Tuple,
@@ -264,11 +284,13 @@ public:
 		const std::tuple<Elements...>& tuple,
 		const StartElem& start_elem,
 		const Func& func
-	) {
+	) const {
+		constexpr std::size_t N = std::tuple_size<std::tuple<Elements...>>::value;
+		static_assert(N > 0, "fold_left expects a non-empty tuple");
 		return _foldl_packer<
 			Func,
 			std::tuple<Elements...>,
-			std::tuple_size<std::tuple<Elements...>>::value - 1,
+			N - 1,
 			StartElem
 		>()._call(func, tuple, start_elem);
 	}
@@ -285,7 +307,7 @@ private:
 			const A& a,
 			const B& b,
 			const Rest&... xs
-		) {
+		) const {
 			return _foldr<
 				Func,
 				Tuple,
@@ -302,7 +324,7 @@ private:
 			const Func& func,
 			const A& a,
 			const B& b
-		) {
+		) const {
 			return func(b, a);
 		}
 	};
@@ -314,7 +336,7 @@ private:
 			const Tuple& tuple,
 			const StartElem& start_elem,
 			const Elements&... elements
-		) {
+		) const {
 			return _foldr_packer<
 				Func,
 				Tuple,
@@ -333,7 +355,7 @@ private:
 			const Tuple& tuple,
 			const StartElem& start_elem,
 			const Elements&... elements
-		) {
+		) const {
 			return _foldr<
 				Func,
 				Tuple,
@@ -354,11 +376,13 @@ public:
 		const std::tuple<Elements...>& tuple,
 		const StartElem& start_elem,
 		const Func& func
-	) {
+	) const {
+		constexpr std::size_t N = std::tuple_size<std::tuple<Elements...>>::value;
+		static_assert(N > 0, "fold_right expects a non-empty tuple");
 		return _foldr_packer<
 			Func,
 			std::tuple<Elements...>,
-			std::tuple_size<std::tuple<Elements...>>::value - 1,
+			N - 1,
 			StartElem
 		>()._call(func, tuple, start_elem);
 	}
