@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 #include "mtga.hpp"
 
 $$ $;
@@ -19,6 +20,16 @@ int main()
 	auto tup = $(1, 2, 3, 4, 5);
 	$.for_each($.map(tup, [](auto x) { return 2*x; }),
 	           [](auto x) { std::cout << x << std::endl; });
+	
+	auto tup2 = $('b', 'c', 'd', 'e');
+	std::cout <<
+		'"' <<
+		$.fold_left(
+			tup2,
+			'a',
+			[](const auto& x, const auto& y) { return x + std::string({ y }); }
+		) <<
+		'"' << std::endl;
 	
 	return 0;
 }
