@@ -273,6 +273,96 @@ public:
 		>()._call(func, tuple, start_elem);
 	}
 	
+	/**** fold_right ****/
+	
+private:
+	
+	template<typename Func, typename Tuple, typename A, typename B, typename... Rest>
+	struct _foldr {
+		inline constexpr auto _do(
+			const Tuple& tuple,
+			const Func& func,
+			const A& a,
+			const B& b,
+			const Rest&... xs
+		) {
+			return _foldr<
+				Func,
+				Tuple,
+				decltype(func(a, b)),
+				Rest...
+			>()._do(tuple, func, func(b, a), xs...);
+		}
+	};
+	
+	template<typename Func, typename Tuple, typename A, typename B>
+	struct _foldr<Func, Tuple, A, B> {
+		inline constexpr auto _do(
+			const Tuple& tuple,
+			const Func& func,
+			const A& a,
+			const B& b
+		) {
+			return func(b, a);
+		}
+	};
+	
+	template<typename Func, typename Tuple, std::size_t I, typename StartElem, typename... Elements>
+	struct _foldr_packer {
+		inline constexpr auto _call(
+			const Func& func,
+			const Tuple& tuple,
+			const StartElem& start_elem,
+			const Elements&... elements
+		) {
+			return _foldr_packer<
+				Func,
+				Tuple,
+				I - 1,
+				StartElem,
+				Elements...,
+				decltype(std::get<I>(tuple))
+			>()._call(func, tuple, start_elem, elements..., std::get<I>(tuple));
+		}
+	};
+	
+	template<typename Func, typename Tuple, typename StartElem, typename... Elements>
+	struct _foldr_packer<Func, Tuple, 0, StartElem, Elements...> {
+		inline constexpr auto _call(
+			const Func& func,
+			const Tuple& tuple,
+			const StartElem& start_elem,
+			const Elements&... elements
+		) {
+			return _foldr<
+				Func,
+				Tuple,
+				StartElem,
+				Elements...,
+				decltype(std::get<0>(tuple))
+			>()._do(tuple, func, start_elem, elements..., std::get<0>(tuple));
+		}
+	};
+	
+public:
+	
+	/**
+		Perform a fold-right (foldr) operation.
+	*/
+	template<typename Func, typename StartElem, typename... Elements>
+	inline constexpr auto fold_right(
+		const std::tuple<Elements...>& tuple,
+		const StartElem& start_elem,
+		const Func& func
+	) {
+		return _foldr_packer<
+			Func,
+			std::tuple<Elements...>,
+			std::tuple_size<std::tuple<Elements...>>::value - 1,
+			StartElem
+		>()._call(func, tuple, start_elem);
+	}
+	
 	/**** operator() ****/
 	
 	/**

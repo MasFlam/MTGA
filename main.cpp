@@ -30,6 +30,14 @@ int main()
 			[](const auto& x, const auto& y) { return x + std::string({ y }); }
 		) <<
 		'"' << std::endl;
+	std::cout <<
+		'"' <<
+		$.fold_right(
+			tup2,
+			'f',
+			[](const auto& x, const auto& y) { return std::string({ x }) + y; }
+		) <<
+		'"' << std::endl;
 	
 	return 0;
 }
