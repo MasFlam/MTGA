@@ -387,6 +387,48 @@ public:
 		>()._call(func, tuple, start_elem);
 	}
 	
+	/**** subtuple ****/
+	
+private:
+	
+	template<typename Tuple, std::size_t EndIndex, std::size_t I, typename... NewElements>
+	struct _subtuple {
+		inline constexpr auto _do(const Tuple& tuple, const NewElements&... elements) {
+			return _subtuple<
+				Tuple,
+				EndIndex,
+				I - 1,
+				NewElements...,
+				decltype(std::get<EndIndex - I>(tuple))
+			>()._do(tuple, elements..., std::get<EndIndex - I - 1>(tuple));
+		}
+	};
+	
+	template<typename Tuple, std::size_t EndIndex, typename... NewElements>
+	struct _subtuple<Tuple, EndIndex, 0, NewElements...> {
+		inline constexpr auto _do(const Tuple& tuple, const NewElements&... elements) {
+			return std::make_tuple(elements..., std::get<EndIndex - 1>(tuple));
+		}
+	};
+	
+public:
+	
+	/**
+		Returns a tuple that constists of 'Length' consecutive elements of 'tuple',
+		starting with the element with index 'StartIndex'.
+	*/
+	template<std::size_t StartIndex, std::size_t Length, typename... Elements>
+	inline constexpr auto subtuple(const std::tuple<Elements...>& tuple) {
+		constexpr std::size_t N = std::tuple_size<std::tuple<Elements...>>::value;
+		static_assert(StartIndex < N, "StartIndex is out of range");
+		static_assert(StartIndex + Length - 1 < N, "The subtuple goes out of range");
+		return _subtuple<
+			std::tuple<Elements...>,
+			StartIndex + Length,
+			Length - 1
+		>()._do(tuple);
+	}
+	
 	/**** operator() ****/
 	
 	/**
